@@ -12,4 +12,5 @@ To install:
 * Click on Extensions -> Apps Script
 * Copy-paste the code into the newly created "macros.gs" file
 * Edit the sheets in lines 6 and 7 to match the sheets you wish to use
+* Run the function either from the editor or from the sheet itself by going to Extensions -> Macros -> Import Macros -> Import functions from file
 * Enjoy!
