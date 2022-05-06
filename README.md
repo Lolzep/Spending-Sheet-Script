@@ -6,3 +6,10 @@ This is a script used for keeping a budget and tracking my revenues/expenses whi
 * TODO: Create new weeks on the same sheet that write over the previous cells when a new week starts.
 
 Just currently thinking of new things to add and updating as I go. Posting this on GitHub just in case it useful to someone!
+
+To install:
+* Go into the Google Sheet you wish to use this on
+* Click on Extensions -> Apps Script
+* Copy-paste the code into the newly created "macros.gs" file
+* Edit the sheets in lines 6 and 7 to match the sheets you wish to use
+* Enjoy!
