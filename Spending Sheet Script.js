@@ -6,13 +6,13 @@ function transpose(a)
 }
 
 function recordHistory() {
-  /* Get the spreadsheets we need to work on */
+  /* Get the spreadsheet we need to work on */
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   /* sheetsource = where the values come from, sheet = where the values go */
   var sheetsource = ss.getSheetByName("Job");
   var sheet = ss.getSheetByName("History");
 
-  /* Get the values from said spreadsheets that will be changed */
+  /* Get the values from said spreadsheet that will be changed */
   var source = sheetsource.getRange("D4:D8");
   var values = source.getValues();
 
@@ -45,8 +45,46 @@ function recordHistory() {
   if (isNaN(tripsperhour)) {
     var tripsperhour = 0;
   }
-  
-  /* Add these new variables to an array that is one row */
+
+  /* Creates a new array for each day in the "Current Week" section to be updated daily */
+  currentweek = [
+    [netincome], [revenue], [expenses], [dollarperhour], [dollarpermile], [dollarpertrip], [miles], [hours], [trips], [tripsperhour]
+  ];
+
+  /* Take the day of the week (Friday, Saturday, etc.) ...*/
+  var replacedate = Utilities.formatDate(new Date(), "GMT-4", "EEEE");
+
+  /* ...if match is found, update that range */
+  if (replacedate == "Monday") {
+    var source2 = sheetsource.getRange("H6:H15");
+    sourc2.setValues(currentweek);
+  }
+  else if (replacedate == "Tuesday") {
+    var source2 = sheetsource.getRange("I6:I15");
+    source2.setValues(currentweek);
+  }
+  else if (replacedate == "Wednesday") {
+    var source2 = sheetsource.getRange("J6:J15");
+    source2.setValues(currentweek);
+  }
+  else if (replacedate == "Thursday") {
+    var source2 = sheetsource.getRange("K6:K15");
+    source2.setValues(currentweek);
+  }
+  else if (replacedate == "Friday") {
+    var source2 = sheetsource.getRange("L6:L15");
+    source2.setValues(currentweek);
+  }
+  else if (replacedate == "Saturday") {
+    var source2 = sheetsource.getRange("M6:M15");
+    source2.setValues(currentweek);
+  }
+  else if (replacedate == "Sunday") {
+    var source2 = sheetsource.getRange("N6:N15");
+    source2.setValues(currentweek);
+  }
+
+  /* Add these new variables to an array that is one row in the "History" sheet */
   toappend = [
     time, netincome, revenue, expenses, dollarperhour, dollarpermile, dollarpertrip, miles, hours, trips, tripsperhour
   ];
@@ -64,13 +102,12 @@ function recordHistory() {
 };
 
 function weeklyupdate() {
-  /* Get the spreadsheets we need to work on */
+  /* Get the spreadsheet we need to work on */
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheetsource = ss.getSheetByName("Job")
 
-  /* Get the values from said spreadsheets that will be changed */
+  /* Get the range from said spreadsheet that will be changed */
   var source = sheetsource.getRange("H5:N5");
-  var values = source.getValues();
 
   /* Creates two new strings (start of week, end of week) */
   var start = new Date();
