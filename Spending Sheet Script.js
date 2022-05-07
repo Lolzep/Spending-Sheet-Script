@@ -128,20 +128,17 @@ function recordHistory() {
   console.log(toappend);
 }
 
-function weeklyupdate() {
-
-  /* Use getSheetWithRange to find sheets to read and write to */
-  var {source} = getSheetWithRange("Job", "History", "I5:O5");
-
-  /* Creates two new strings (start of week, end of week) */
+function datesAsRow(daysinpast, daysinfuture) {
+  /* Creates two new strings (start date, end date) */
   var start = new Date();
-  var enddate = "05/XX/2022";
-  var replacedate = Utilities.formatDate(new Date(), "GMT-4", "dd");
-  var enddate = enddate.replace("XX", parseInt(replacedate) + 6);
-  var end = new Date(enddate);
+  var start = new Date(start.setDate(start.getDate() - daysinpast));
+  var enddate= new Date();
+  var enddate = new Date(enddate.setDate(enddate.getDate() + daysinfuture));
+  var replacedate = Utilities.formatDate(enddate, "GMT-4", "MM/dd/yyyy");
+  var end = new Date(replacedate);
 
   /* Loop starting from start of the week and ending at end of week */
-  /* Create a new array for the 7 days of the week to write over current dates once a week */
+  /* Create a new array for the n days to write in a range*/
   var weeklydates = [[start]];
   var loop = new Date(start);
   while (loop <= end) {
@@ -149,6 +146,16 @@ function weeklyupdate() {
     var newDate = loop.setDate(loop.getDate() + 1);
     loop = new Date(newDate);
   }
+
+  return weeklydates;
+}
+
+function weeklyupdate() {
+
+  /* Use getSheetWithRange to find sheets to read and write to */
+  var {source} = getSheetWithRange("Job", "History", "I5:O5");
+
+  var weeklydates = datesAsRow(0, 6);
 
   /* Transpose the array so that columns are inserted instead of rows */
   /* Write the values into the source sheet */
