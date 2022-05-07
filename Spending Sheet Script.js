@@ -5,7 +5,7 @@ function transpose(a)
   return Object.keys(a[0]).map(function (c) { return a.map(function (r) { return r[c]; }); });
 }
 
-function getSheetWithRange(sheettoread, sheettowrite, range) {
+function getSheetWithRange(sheettoread, sheettowrite, sourcerange, endrange) {
   /* Get the spreadsheet we need to work on */
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   /* sheetsource = where the values come from, sheet = where the values go */
@@ -13,40 +13,82 @@ function getSheetWithRange(sheettoread, sheettowrite, range) {
   var sheet = ss.getSheetByName(sheettowrite);
 
   /* Get the values from said spreadsheet that will be changed */
-  var source = sheetsource.getRange(range);
-  var values = source.getValues();
+  var source = sheetsource.getRange(sourcerange);
+  var sourcevalues = source.getValues();
 
   return {
     sheetsource: sheetsource,
     sheet: sheet,
     source: source,
-    values: values,
+    sourcevalues: sourcevalues,
   };
 }
 
 function gasupdate() {
 
   /* Use getSheetWithRange to find sheets to read and write to */
-  var {sheetsource, sheet, source, values} = getSheetWithRange("Job", "History", "D4:D8");
+  var {sheetsource, sheet, source, sourcevalues} = getSheetWithRange("Job", "Gas", "D4:D8");
+  var gastrackerrange = sheetsource.getRange("D56:D59");
+  var gastrackervalues = gastrackerrange.getValues();
 
+  const lastpurchasedate = gastrackervalues[0][0];
+  const amountpaid = sourcevalues[1][0];
+  const today = new Date();
+
+  var datedif = Math.abs(today - lastpurchasedate)
+  var datedif =  Math.floor(datedif / (1000 * 60 * 60 * 24));
+  const dollarperday = amountpaid / datedif;
+  
+  console.log(lastpurchasedate);
+  console.log(amountpaid);
+  console.log(today);
+  console.log(dollarperday);
+
+  gastracker = [
+    [today], [amountpaid], [today], [dollarperday]
+  ];
+
+  var start = lastpurchasedate;
+  var end = today;
+
+  var weeklydates = [[start, dollarperday]];
+  var loop = new Date(start);
+  while (loop <= end) {
+    weeklydates.push([loop, dollarperday]);
+    var newDate = loop.setDate(loop.getDate() + 1);
+    loop = new Date(newDate);
+  }  
+
+  console.log(weeklydates);
+  console.log(weeklydates.length);
+
+  LockService.getScriptLock().waitLock(60000);
+    sheet.getRange(sheet.getLastRow() + 1, 1, weeklydates.length, weeklydates[0].length).setValues(weeklydates);
+
+  gastrackerrange.setValues(gastracker);
+  sheetsource.getRange("D58").setFormula("=TODAY()");
 }
 
 function recordHistory() {
 
   /* Use getSheetWithRange to find sheets to read and write to */
-  var {sheetsource, sheet, source, values} = getSheetWithRange("Job", "History", "D4:D8");
+  var {sheetsource, sheet, source, sourcevalues} = getSheetWithRange("Job", "History", "D4:D9");
 
   /* Create a whole-lotta variables */
   const time = new Date();
-  const revenue = values[0][0];
-  const miles = values[2][0];
-  const hours = values[3][0];
-  const trips = values[4][0];
+  const revenue = sourcevalues[0][0];
+  const otherexpenses = sourcevalues[2][0];
+  const miles = sourcevalues[3][0];
+  const hours = sourcevalues[4][0];
+  const trips = sourcevalues[5][0];
 
-  const gas = values[1][0];
+  const gas = sourcevalues[1][0];
+  if (gas != 0) {
+    gasupdate();
+  }
   const taxes = (revenue * 0.153);
   const carmaint = (miles * 0.40);
-  const expenses = gas + taxes + carmaint;
+  const expenses = gas + taxes + carmaint + otherexpenses;
   const netincome = revenue - expenses;
 
   var dollarperhour = netincome / hours;
@@ -69,44 +111,6 @@ function recordHistory() {
     var tripsperhour = 0;
   }
 
-  /* Creates a new array for each day in the "Current Week" section to be updated daily */
-  currentweek = [
-    [netincome], [revenue], [expenses], [taxes], [gas], [carmaint], [dollarperhour], [dollarpermile], [dollarpertrip], [miles], [hours], [trips], [tripsperhour]
-  ];
-
-  /* Take the day of the week (Friday, Saturday, etc.) ...*/
-  var replacedate = Utilities.formatDate(new Date(), "GMT-4", "EEEE");
-
-  /* ...if match is found, update that range */
-  if (replacedate == "Monday") {
-    var source2 = sheetsource.getRange("H6:H18");
-    sourc2.setValues(currentweek);
-  }
-  else if (replacedate == "Tuesday") {
-    var source2 = sheetsource.getRange("I6:I18");
-    source2.setValues(currentweek);
-  }
-  else if (replacedate == "Wednesday") {
-    var source2 = sheetsource.getRange("J6:J18");
-    source2.setValues(currentweek);
-  }
-  else if (replacedate == "Thursday") {
-    var source2 = sheetsource.getRange("K6:K18");
-    source2.setValues(currentweek);
-  }
-  else if (replacedate == "Friday") {
-    var source2 = sheetsource.getRange("L6:L18");
-    source2.setValues(currentweek);
-  }
-  else if (replacedate == "Saturday") {
-    var source2 = sheetsource.getRange("M6:M18");
-    source2.setValues(currentweek);
-  }
-  else if (replacedate == "Sunday") {
-    var source2 = sheetsource.getRange("N6:N18");
-    source2.setValues(currentweek);
-  }
-
   /* Add these new variables to an array that is one row in the "History" sheet */
   toappend = [
     time, netincome, revenue, expenses, taxes, gas, carmaint, dollarperhour, dollarpermile, dollarpertrip, miles, hours, trips, tripsperhour
@@ -127,7 +131,7 @@ function recordHistory() {
 function weeklyupdate() {
 
   /* Use getSheetWithRange to find sheets to read and write to */
-  var {source} = getSheetWithRange("Job", "History", "H5:N5");
+  var {source} = getSheetWithRange("Job", "History", "I5:O5");
 
   /* Creates two new strings (start of week, end of week) */
   var start = new Date();
