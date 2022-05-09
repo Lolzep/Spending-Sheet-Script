@@ -5,7 +5,7 @@ function transpose(a)
   return Object.keys(a[0]).map(function (c) { return a.map(function (r) { return r[c]; }); });
 }
 
-function getSheetWithRange(sheettoread, sheettowrite, sourcerange, endrange) {
+function getSheetWithRange(sheettoread, sheettowrite, sourcerange) {
   
   /* Get the spreadsheet we need to work on */
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -165,4 +165,12 @@ function weeklyupdate() {
   var source = sheetsource.getRange("I22:O22");
   var hlastweek = transpose(lastweek);
   source.setValues(hlastweek);
+}
+
+function monthlyupdate() {
+
+  /* Use getSheetWithRange to find sheets to read and write to */
+  var {sheetsource, source} = getSheetWithRange("Job", "History", "D44:D45");
+
+
 }
