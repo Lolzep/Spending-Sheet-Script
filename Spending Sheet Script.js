@@ -1,6 +1,6 @@
 /** @OnlyCurrentDoc */
 function transpose(a)
-/* Transposes an array (col -> rows, rows -> col). It's magic.*/
+/* Transposes an 2d array (col -> rows, rows -> col). It's magic.*/
 {
   return Object.keys(a[0]).map(function (c) { return a.map(function (r) { return r[c]; }); });
 }
@@ -33,13 +33,14 @@ function gasupdate() {
   var gastrackervalues = gastrackerrange.getValues();
 
   /* Get variables from the Gas Tracker range and the Daily Inputs range*/
-  const lastpurchasedate = gastrackervalues[0][0];
+  const lastpurchasedate = gastrackervalues[0][0].setDate(gastrackervalues[0][0].getDate() + 1);
   const amountpaid = sourcevalues[1][0];
   const today = new Date();
+  const secondsperday = (1000 * 60 * 60 * 24);
 
   /* Calculate the date difference since last gas purchase to then calculate dollars/day */
-  var datedif = Math.abs(today - lastpurchasedate)
-  var datedif =  Math.floor(datedif / (1000 * 60 * 60 * 24));
+  var datedif = Math.abs(today - lastpurchasedate);
+  var datedif =  Math.ceil(datedif / secondsperday);
   const dollarperday = amountpaid / datedif;
 
   /* Create an array of arrays (rows) to update Gas Tracker section with */
@@ -51,13 +52,17 @@ function gasupdate() {
   var start = lastpurchasedate;
   var end = today;
 
-  var weeklydates = [[start, dollarperday]];
+  var weeklydates = [];
   var loop = new Date(start);
+  console.log(start);
+  console.log(loop);
   while (loop <= end) {
     weeklydates.push([loop, dollarperday]);
-    var newDate = loop.setDate(loop.getDate() + 1);
+    var newDate = new Date(loop);
+    newDate.setDate(newDate.getDate() + 1);
     loop = new Date(newDate);
   }  
+  console.log(weeklydates);
 
   /* Append new rows just created into the Gas sheet as the new array created */
   LockService.getScriptLock().waitLock(60000);
@@ -91,29 +96,31 @@ function recordHistory() {
   const netincome = revenue - expenses;
 
   var dollarperhour = netincome / hours;
-  if (isNaN(dollarperhour) || dollarperhour < -100000) {
+  if (isNaN(dollarperhour) || Math.abs(dollarperhour) == Number.POSITIVE_INFINITY) {
     var dollarperhour = 0;  
   }
 
   var dollarpermile = netincome / miles;
-  if (isNaN(dollarpermile) || dollarpermile < -100000) {
+  if (isNaN(dollarpermile) || Math.abs(dollarpermile) == Number.POSITIVE_INFINITY) {
     var dollarpermile = 0;
   }
 
   var dollarpertrip = netincome / trips;
-  if (isNaN(dollarpertrip) || dollarpertrip < -100000) {
+  if (isNaN(dollarpertrip) || Math.abs(dollarpertrip) == Number.POSITIVE_INFINITY) {
     var dollarpertrip = 0;
   } 
 
   var tripsperhour = trips / hours;
-  if (isNaN(tripsperhour) || tripsperhour < -100000) {
+  if (isNaN(tripsperhour) || Math.abs(tripsperhour) == Number.POSITIVE_INFINITY) {
     var tripsperhour = 0;
   }
 
   /* Add these new variables to an array that is one row in the "History" sheet */
   toappend = [
-    time, netincome, revenue, expenses, taxes, gas, carmaint, dollarperhour, dollarpermile, dollarpertrip, miles, hours, trips, tripsperhour
+    time, netincome, revenue, expenses, taxes, gas, carmaint, otherexpenses, dollarperhour, dollarpermile, dollarpertrip, miles, hours, trips, tripsperhour
   ];
+
+  console.log(toappend);
 
   /* Reset the daily inputs to 0 */
   source.setValue(0);
@@ -154,8 +161,8 @@ function weeklyupdate() {
   var {sheetsource, source} = getSheetWithRange("Job", "History", "I5:O5");
 
   /* Use the datesAsRows function to write this week and last weeks dates into as an array */
-  var thisweek = datesAsRows(7, -1);
-  var lastweek = datesAsRows(0, 6);
+  var thisweek = datesAsRows(0, 6);
+  var lastweek = datesAsRows(7, -1);
 
   /* Transpose the array so that columns are inserted instead of rows */
   /* Write the values into the source sheet for this week and last week */
