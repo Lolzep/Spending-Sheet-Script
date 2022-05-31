@@ -91,8 +91,7 @@ function recordHistory() {
     gasupdate();
   }
   const taxes = (revenue * 0.153);
-  const carmaint = (miles * 0.40);
-  const expenses = gas + taxes + carmaint + otherexpenses;
+  const expenses = gas + taxes + otherexpenses;
   const netincome = revenue - expenses;
 
   var dollarperhour = netincome / hours;
@@ -117,7 +116,7 @@ function recordHistory() {
 
   /* Add these new variables to an array that is one row in the "History" sheet */
   toappend = [
-    time, netincome, revenue, expenses, taxes, gas, carmaint, otherexpenses, dollarperhour, dollarpermile, dollarpertrip, miles, hours, trips, tripsperhour
+    time, netincome, revenue, expenses, taxes, gas, otherexpenses, dollarperhour, dollarpermile, dollarpertrip, miles, hours, trips, tripsperhour
   ];
 
   console.log(toappend);
@@ -169,7 +168,7 @@ function weeklyupdate() {
   var hthisweek = transpose(thisweek);
   source.setValues(hthisweek);
 
-  var source = sheetsource.getRange("I22:O22");
+  var source = sheetsource.getRange("I21:O21");
   var hlastweek = transpose(lastweek);
   source.setValues(hlastweek);
 }
@@ -177,7 +176,8 @@ function weeklyupdate() {
 function monthlyupdate() {
 
   /* Use getSheetWithRange to find sheets to read and write to */
-  var {sheetsource, source} = getSheetWithRange("Job", "History", "D44:D45");
+  var {sheetsource, source} = getSheetWithRange("Job", "History", "D44:D53");
 
+  
 
 }
