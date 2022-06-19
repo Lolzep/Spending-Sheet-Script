@@ -90,7 +90,10 @@ function recordHistory() {
   if (gas != 0) {
     gasupdate();
   }
-  const taxes = (revenue * 0.153);
+  var taxes = (revenue * 0.153) - (miles * 0.585);
+  if (taxes < 0) {
+    var taxes = 0;
+  }
   const expenses = gas + taxes + otherexpenses;
   const netincome = revenue - expenses;
 
